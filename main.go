@@ -241,17 +241,15 @@ func main() {
 			fmt.Fprintf(os.Stderr, "Error searching %q: %v\n", q, err)
 			continue
 		}
-		found := false
+		if len(words) == 0 {
+			fmt.Printf("\t[ ] %s not found\n", q)
+		}
 		for _, w := range words {
 			if !seen[w] {
 				seen[w] = true
 				allWords = append(allWords, w)
 				fmt.Printf("\t[x] %s\n", w)
-				found = true
 			}
-		}
-		if !found {
-			fmt.Printf("\t[ ] %s not found\n", q)
 		}
 	}
 
