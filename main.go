@@ -21,16 +21,6 @@ const (
 	maxPages       = 10
 )
 
-var banner = `
- ██████   ██████  ███████ ███    ██ ██
-██       ██       ██      ████   ██ ██
-██   ███ ██   ███ █████   ██ ██  ██ ██
-██    ██ ██    ██ ██      ██  ██ ██ ██
- ██████   ██████  ███████ ██   ████ ██
-                                        
-      by yazdanctx
-`
-
 type config struct {
 	Token string `json:"token"`
 }
@@ -192,12 +182,7 @@ func main() {
 	tokenPtr := flag.String("token", "", "GitHub personal access token")
 	filePtr := flag.String("f", "", "file with shortnames (one per line)")
 	outputPtr := flag.String("o", "", "output wordlist file")
-	silentPtr := flag.Bool("silent", false, "suppress banner")
 	flag.Parse()
-
-	if !*silentPtr {
-		fmt.Print(banner)
-	}
 
 	token := *tokenPtr
 	if token == "" {
@@ -239,7 +224,7 @@ func main() {
 	} else if flag.NArg() > 0 {
 		queries = append(queries, flag.Arg(0))
 	} else {
-		fmt.Fprintln(os.Stderr, "Usage: ggsnw [--token TOKEN] [-f file] [-o file] [-silent] [SHORTNAME]")
+		fmt.Fprintln(os.Stderr, "Usage: ggsnw [--token TOKEN] [-f file] [-o file] [SHORTNAME]")
 		os.Exit(1)
 	}
 
