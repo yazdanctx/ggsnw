@@ -1,6 +1,6 @@
 # ggsnw
 
-Recon tool that takes IIS shortnames (e.g. `ADMIN~1`, `WEB~1.CON`) and extracts real filenames from GitHub Code Search — useful for expanding directory listing findings.
+Recon tool that takes IIS shortnames (e.g. `ADMIN~1`, `WEB~1.CON`) and expands them into a wordlist using either GitHub Code Search (real filenames) or OpenAI (AI-generated guesses).
 
 ## Install
 
@@ -8,25 +8,29 @@ Recon tool that takes IIS shortnames (e.g. `ADMIN~1`, `WEB~1.CON`) and extracts 
 go install github.com/yazdanctx/ggsnw@latest
 ```
 
-## Token
+## Tokens
 
-ggsnw needs a GitHub personal access token to search code. Without one, GitHub limits you to 10 unauthenticated requests/minute; with a token you get 30/min.
+### GitHub token (for `--mode github`, default)
+Needed for GitHub Code Search API. Without one, you get 10 req/min; with a token, 30 req/min.
+Get one at https://github.com/settings/tokens (no scopes needed for public repos).
 
-Get a token at https://github.com/settings/tokens — no scopes are needed for public repo searches.
+### OpenAI key (for `--mode ai`)
+Needed for AI-powered name guessing using gpt-3.5-turbo.
+Get one at https://platform.openai.com/api-keys
 
-On first run, ggsnw will prompt you to enter one. It's stored at `~/.config/ggsnw/config.json` for subsequent runs.
+Set either with `--token` / `--key` or let the tool prompt you on first use. Stored at `~/.config/ggsnw/config.json`.
 
 ## Usage
 
 ```
-# set token (once)
-ggsnw --token ghp_xxxxxxxxxxxx
-
-# single shortname
+# GitHub mode (default) — finds real filenames
+ggsnw --token ghp_xxx
 ggsnw ADMIN~1
-
-# batch from file
 ggsnw -f shortnames.txt -o wordlist.txt
+
+# AI mode — generates plausible name guesses
+ggsnw --key sk-xxx --mode ai ADMIN~1
+ggsnw --mode ai -f shortnames.txt --guesses 15
 ```
 
-Rate-limited to 30 requests/minute (GitHub API limit for authenticated code search); the tool automatically pauses when near the limit.
+GitHub mode is rate-limited to 30 requests/minute; the tool pauses automatically.
