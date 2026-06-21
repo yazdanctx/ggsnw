@@ -37,7 +37,7 @@ type config struct {
 
 type searchResponse struct {
 	TotalCount int `json:"total_count"`
-	Items []struct {
+	Items      []struct {
 		Name string `json:"name"`
 		Path string `json:"path"`
 	} `json:"items"`
@@ -74,10 +74,10 @@ func saveToken(token string) error {
 		return err
 	}
 	p := configPath()
-	if err := os.MkdirAll(filepath.Dir(p), 0700); err != nil {
+	if err := os.MkdirAll(filepath.Dir(p), 0o700); err != nil {
 		return err
 	}
-	return os.WriteFile(p, data, 0600)
+	return os.WriteFile(p, data, 0o600)
 }
 
 func newClient(token string) *client {
@@ -275,7 +275,7 @@ func main() {
 
 	if *outputPtr != "" {
 		data := strings.Join(allWords, "\n") + "\n"
-		if err := os.WriteFile(*outputPtr, []byte(data), 0644); err != nil {
+		if err := os.WriteFile(*outputPtr, []byte(data), 0o644); err != nil {
 			fmt.Fprintf(os.Stderr, "Error writing output: %v\n", err)
 		}
 	}
