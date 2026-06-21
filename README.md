@@ -8,6 +8,14 @@ Recon tool that takes IIS shortnames (e.g. `ADMIN~1`, `WEB~1.CON`) and extracts 
 go install github.com/yazdanctx/ggsnw@latest
 ```
 
+## Token
+
+ggsnw needs a GitHub personal access token to search code. Without one, GitHub limits you to 10 unauthenticated requests/minute; with a token you get 30/min.
+
+Get a token at https://github.com/settings/tokens — no scopes are needed for public repo searches.
+
+On first run, ggsnw will prompt you to enter one. It's stored at `~/.config/ggsnw/config.json` for subsequent runs.
+
 ## Usage
 
 ```
@@ -19,11 +27,6 @@ ggsnw ADMIN~1
 
 # batch from file
 ggsnw -f shortnames.txt -o wordlist.txt
-
-# suppress banner
-ggsnw -silent ADMIN~1
 ```
-
-Token is stored at `~/.config/ggsnw/config.json`.
 
 Rate-limited to 30 requests/minute (GitHub API limit for authenticated code search); the tool automatically pauses when near the limit.

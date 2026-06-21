@@ -196,7 +196,9 @@ func main() {
 		}
 	}
 	if token == "" {
-		fmt.Print("GitHub token not found. Enter token: ")
+		fmt.Println("ggsnw needs a GitHub token to search code (30 req/min vs 10 unauthenticated).")
+		fmt.Println("Get one: https://github.com/settings/tokens (no scopes needed for public repos)")
+		fmt.Print("Enter token: ")
 		fmt.Scan(&token)
 		token = strings.TrimSpace(token)
 		if token == "" {
