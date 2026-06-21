@@ -208,8 +208,16 @@ func main() {
 		}
 	}
 	if token == "" {
-		fmt.Fprintln(os.Stderr, "GitHub token required. Use --token or configure once.")
-		os.Exit(1)
+		fmt.Print("GitHub token not found. Enter token: ")
+		fmt.Scan(&token)
+		token = strings.TrimSpace(token)
+		if token == "" {
+			fmt.Fprintln(os.Stderr, "Token required.")
+			os.Exit(1)
+		}
+		if err := saveToken(token); err != nil {
+			fmt.Fprintf(os.Stderr, "Warning: could not save token: %v\n", err)
+		}
 	}
 
 	var queries []string
