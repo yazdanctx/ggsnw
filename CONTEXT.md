@@ -6,7 +6,7 @@
 A truncated 8.3-style IIS shortname (e.g. `ADMIN~1`, `WEB~1.CON`). The input to the tool.
 
 ### Real name
-The full filename extracted from a GitHub Code Search result whose path contains the shortname (case-insensitive match against any path segment). The output of the tool.
+The full filename extracted from a GitHub Code Search result whose name contains the shortname (case-insensitive `filename:` query). The output of the tool.
 
 ### Wordlist
 The set of unique real names collected across all searched shortnames, deduplicated.
@@ -40,4 +40,4 @@ The set of unique real names collected across all searched shortnames, deduplica
 |---|---|
 | Max results per query | 1000 (10 pages × 100) |
 | Rate limit (authenticated) | 30 req/min |
-| Match mode | Case-insensitive, any path segment |
+| Match mode | Case-insensitive, filename segment |

@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -87,7 +88,7 @@ func (c *client) searchShortname(query string) ([]string, error) {
 			Path:   "/search/code",
 		}
 		q := u.Query()
-		q.Set("q", "path:"+query)
+		q.Set("q", "filename:"+query)
 		q.Set("per_page", strconv.Itoa(maxPerPage))
 		q.Set("page", strconv.Itoa(page))
 		u.RawQuery = q.Encode()
@@ -254,6 +255,7 @@ func main() {
 		}
 	}
 
+	sort.Strings(allWords)
 	fmt.Println("-----")
 	for _, w := range allWords {
 		fmt.Println(w)
