@@ -33,6 +33,7 @@ type model struct {
 	wl        *wordlist.Wordlist
 	input     textinput.Model
 	modeSel   int
+	menuSel   int
 
 	cfgPromptFor string
 
@@ -151,6 +152,8 @@ func (m model) handleModeSelectKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		}
 	case "enter":
 		return m.selectMode()
+	case "esc", "q":
+		return m, tea.Quit
 	}
 	return m, nil
 }
@@ -215,33 +218,57 @@ func (m model) handleConfigPromptKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	}
 }
 
-func (m model) handleMainMenuKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
-	switch msg.String() {
-	case "1":
+var menuItems = []struct {
+	label string
+	action func(*model) (tea.Model, tea.Cmd)
+}{
+	{label: "Expand Shortname", action: func(m *model) (tea.Model, tea.Cmd) {
 		m.input.SetValue("")
 		m.input.Placeholder = "Enter shortname (e.g. auth)"
 		m.input.Focus()
 		m.state = viewExpand
 		return m, nil
-	case "2":
+	}},
+	{label: "Load from File", action: func(m *model) (tea.Model, tea.Cmd) {
 		m.input.SetValue("")
 		m.input.Placeholder = "Enter file path"
 		m.input.Focus()
 		m.state = viewLoadFile
 		return m, nil
-	case "3":
+	}},
+	{label: "View Wordlist", action: func(m *model) (tea.Model, tea.Cmd) {
 		m.state = viewWordlist
 		return m, nil
-	case "4":
+	}},
+	{label: "Export Wordlist", action: func(m *model) (tea.Model, tea.Cmd) {
 		m.input.SetValue("")
 		m.input.Placeholder = "Enter output file path"
 		m.input.Focus()
 		m.state = viewExport
 		return m, nil
-	case "5":
+	}},
+	{label: "Clear Wordlist", action: func(m *model) (tea.Model, tea.Cmd) {
 		m.state = viewClearConfirm
 		return m, nil
-	case "6", "q":
+	}},
+	{label: "Quit", action: func(m *model) (tea.Model, tea.Cmd) {
+		return m, tea.Quit
+	}},
+}
+
+func (m model) handleMainMenuKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+	switch msg.String() {
+	case "up", "k":
+		if m.menuSel > 0 {
+			m.menuSel--
+		}
+	case "down", "j":
+		if m.menuSel < len(menuItems)-1 {
+			m.menuSel++
+		}
+	case "enter":
+		return menuItems[m.menuSel].action(&m)
+	case "esc", "q":
 		return m, tea.Quit
 	}
 	return m, nil
@@ -381,7 +408,7 @@ func (m model) View() string {
 			b.WriteString("    GitHub (search code)\n")
 			b.WriteString("  > OpenAI (AI guesses)\n")
 		}
-		b.WriteString("\n\x1b[2m↑/↓ navigate  •  Enter select\x1b[0m\n")
+		b.WriteString("\n\x1b[2m↑/↓ navigate  •  Enter select  •  Esc/q quit\x1b[0m\n")
 
 	case viewConfigPrompt:
 		if m.cfgPromptFor == "github" {
@@ -397,17 +424,18 @@ func (m model) View() string {
 
 	case viewMainMenu:
 		b.WriteString(fmt.Sprintf("ggsnw — Mode: %s    Words: %d\n\n", m.src.Name(), m.wl.Count()))
-		b.WriteString("  1. Expand Shortname\n")
-		b.WriteString("  2. Load from File\n")
-		b.WriteString("  3. View Wordlist\n")
-		b.WriteString("  4. Export Wordlist\n")
-		b.WriteString("  5. Clear Wordlist\n")
-		b.WriteString("  6. Quit\n")
+		for i, item := range menuItems {
+			if m.menuSel == i {
+				b.WriteString(fmt.Sprintf("  > %s\n", item.label))
+			} else {
+				b.WriteString(fmt.Sprintf("    %s\n", item.label))
+			}
+		}
 		if m.statusMsg != "" {
 			b.WriteString("\n  " + m.statusMsg + "\n")
 			m.statusMsg = ""
 		}
-		b.WriteString("\n\x1b[2mPress a number to select\x1b[0m\n")
+		b.WriteString("\n\x1b[2m↑/↓ navigate  •  Enter select  •  Esc/q quit\x1b[0m\n")
 
 	case viewExpand:
 		b.WriteString("Enter shortname:\n\n")
