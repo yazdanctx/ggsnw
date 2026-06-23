@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/yazdanctx/ggsnw/config"
@@ -34,8 +35,10 @@ type model struct {
 	src       source.Source
 	wl        *wordlist.Wordlist
 	input     textinput.Model
+	spinner   spinner.Model
 	modeSel   int
 	menuSel   int
+	loading   bool
 
 	cfgPromptFor string
 
@@ -54,15 +57,18 @@ func New() model {
 	ti.Width = 60
 	ti.Placeholder = "e.g. auth"
 
+	s := spinner.New()
+
 	return model{
 		state:   viewModeSelect,
 		wl:      wordlist.New(),
 		input:   ti,
+		spinner: s,
 	}
 }
 
 func (m model) Init() tea.Cmd {
-	return textinput.Blink
+	return tea.Batch(textinput.Blink, m.spinner.Tick)
 }
 
 type (
@@ -83,10 +89,18 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if msg.String() == "ctrl+c" {
 			return m, tea.Quit
 		}
-		return m.handleKey(msg)
+		if !m.loading {
+			return m.handleKey(msg)
+		}
+		return m, nil
 	}
 	switch msg := msg.(type) {
+	case spinner.TickMsg:
+		var cmd tea.Cmd
+		m.spinner, cmd = m.spinner.Update(msg)
+		return m, cmd
 	case expandDoneMsg:
+		m.loading = false
 		m.resultWords = msg.words
 		m.resultErr = msg.err
 		m.resultShortname = msg.shortname
@@ -97,6 +111,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.state = viewExpandResult
 		return m, nil
 	case fileExpandDoneMsg:
+		m.loading = false
 		if len(msg.words) > 0 {
 			m.wl.Add(msg.words...)
 		}
@@ -284,6 +299,7 @@ func (m model) handleExpandKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 		m.input.Blur()
+		m.loading = true
 		ctx := context.Background()
 		return m, func() tea.Msg {
 			words, err := m.src.Expand(ctx, shortname)
@@ -317,6 +333,7 @@ func (m model) handleLoadFileKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 		m.input.Blur()
+		m.loading = true
 		ctx := context.Background()
 		return m, func() tea.Msg {
 			data, err := os.ReadFile(path)
@@ -440,9 +457,13 @@ func (m model) View() string {
 		b.WriteString("\n\x1b[2m↑/↓ navigate  •  Enter select  •  Esc/q quit\x1b[0m\n")
 
 	case viewExpand:
-		b.WriteString("Enter shortname:\n\n")
-		b.WriteString(m.input.View() + "\n\n")
-		b.WriteString("\x1b[2mEnter to expand  •  Esc to go back\x1b[0m\n")
+		if m.loading {
+			b.WriteString(m.spinner.View() + " Expanding...\n")
+		} else {
+			b.WriteString("Enter shortname:\n\n")
+			b.WriteString(m.input.View() + "\n\n")
+			b.WriteString("\x1b[2mEnter to expand  •  Esc to go back\x1b[0m\n")
+		}
 
 	case viewExpandResult:
 		if m.resultIsFile {
@@ -462,11 +483,7 @@ func (m model) View() string {
 			b.WriteString(fmt.Sprintf("  [ ] %s — not found\n", m.resultShortname))
 		} else {
 			b.WriteString(fmt.Sprintf("  [x] %s — %d words\n\n", m.resultShortname, len(m.resultWords)))
-			for i, w := range m.resultWords {
-				if i >= 10 {
-					b.WriteString(fmt.Sprintf("  ... and %d more\n", len(m.resultWords)-10))
-					break
-				}
+			for _, w := range m.resultWords {
 				b.WriteString("  " + w + "\n")
 			}
 		}
@@ -474,9 +491,13 @@ func (m model) View() string {
 		b.WriteString("\n\x1b[2mPress Enter to continue\x1b[0m\n")
 
 	case viewLoadFile:
-		b.WriteString("Load shortnames from file:\n\n")
-		b.WriteString(m.input.View() + "\n\n")
-		b.WriteString("\x1b[2mEnter to load  •  Esc to go back\x1b[0m\n")
+		if m.loading {
+			b.WriteString(m.spinner.View() + " Loading shortnames...\n")
+		} else {
+			b.WriteString("Load shortnames from file:\n\n")
+			b.WriteString(m.input.View() + "\n\n")
+			b.WriteString("\x1b[2mEnter to load  •  Esc to go back\x1b[0m\n")
+		}
 
 	case viewExport:
 		b.WriteString("Export wordlist to file:\n\n")
@@ -489,10 +510,6 @@ func (m model) View() string {
 		words := m.wl.All()
 		if len(words) > 0 {
 			for i, w := range words {
-				if i >= 20 {
-					b.WriteString(fmt.Sprintf("  ... and %d more\n", len(words)-20))
-					break
-				}
 				b.WriteString(fmt.Sprintf("  %d. %s\n", i+1, w))
 			}
 		} else {
