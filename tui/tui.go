@@ -16,7 +16,7 @@ import (
 
 var Version = "dev"
 
-var Banner = "ggsnw"
+var Banner = "ggsnw - iis wordlist generator"
 
 func writeHeader(b *strings.Builder) {
 	b.WriteString(Banner + "  \x1b[2mby @yazdanctx\x1b[0m\n\n")
