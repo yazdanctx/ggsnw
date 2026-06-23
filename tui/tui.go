@@ -13,6 +13,8 @@ import (
 	"github.com/yazdanctx/ggsnw/wordlist"
 )
 
+var Version = "dev"
+
 type viewState int
 
 const (
@@ -399,7 +401,7 @@ func (m model) View() string {
 
 	switch m.state {
 	case viewModeSelect:
-		b.WriteString("ggsnw — Wordlist Generator\n\n")
+		b.WriteString(fmt.Sprintf("ggsnw %s — Wordlist Generator\n\n", Version))
 		b.WriteString("Select expansion source:\n\n")
 		if m.modeSel == 0 {
 			b.WriteString("  > GitHub (search code)\n")

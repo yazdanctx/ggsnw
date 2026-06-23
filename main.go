@@ -8,6 +8,8 @@ import (
 	"github.com/yazdanctx/ggsnw/tui"
 )
 
+var version = "dev"
+
 func main() {
 	m := tui.New()
 	p := tea.NewProgram(m, tea.WithAltScreen())
