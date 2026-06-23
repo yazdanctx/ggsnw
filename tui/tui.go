@@ -16,17 +16,7 @@ import (
 
 var Version = "dev"
 
-var Banner = `
- ░▒▓██████▓▒░ ░▒▓██████▓▒░ ░▒▓███████▓▒░▒▓███████▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░ 
-░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░ 
-░▒▓█▓▒░      ░▒▓█▓▒░      ░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░ 
-░▒▓█▓▒▒▓███▓▒░▒▓█▓▒▒▓███▓▒░░▒▓██████▓▒░░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░ 
-░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░      ░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░ 
-░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░      ░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░ 
- ░▒▓██████▓▒░ ░▒▓██████▓▒░░▒▓███████▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█████████████▓▒░  
-                                                                          
-
-`
+var Banner = "ggsnw"
 
 type viewState int
 
@@ -461,8 +451,8 @@ func (m model) View() string {
 
 	case viewMainMenu:
 		b.WriteString(Banner + "\n")
-		b.WriteString("\x1b[2m         Wordlist Generator by yazdanctx\x1b[0m\n")
-		b.WriteString(fmt.Sprintf("\n  Mode: %s    Words: %d\n\n", m.src.Name(), m.wl.Count()))
+		b.WriteString("\x1b[2m  written by yazdanctx\x1b[0m\n")
+		b.WriteString(fmt.Sprintf("\n  mode: %s    words: %d\n\n", m.src.Name(), m.wl.Count()))
 		for i, item := range menuItems {
 			label := item.label
 			if (i == 2 || i == 3) && m.wl.Count() > 0 {
