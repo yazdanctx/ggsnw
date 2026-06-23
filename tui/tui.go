@@ -16,6 +16,18 @@ import (
 
 var Version = "dev"
 
+var Banner = `
+ ░▒▓██████▓▒░ ░▒▓██████▓▒░ ░▒▓███████▓▒░▒▓███████▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░ 
+░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░ 
+░▒▓█▓▒░      ░▒▓█▓▒░      ░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░ 
+░▒▓█▓▒▒▓███▓▒░▒▓█▓▒▒▓███▓▒░░▒▓██████▓▒░░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░ 
+░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░      ░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░ 
+░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░      ░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░ 
+ ░▒▓██████▓▒░ ░▒▓██████▓▒░░▒▓███████▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█████████████▓▒░  
+                                                                          
+
+`
+
 type viewState int
 
 const (
@@ -31,14 +43,14 @@ const (
 )
 
 type model struct {
-	state     viewState
-	src       source.Source
-	wl        *wordlist.Wordlist
-	input     textinput.Model
-	spinner   spinner.Model
-	modeSel   int
-	menuSel   int
-	loading   bool
+	state   viewState
+	src     source.Source
+	wl      *wordlist.Wordlist
+	input   textinput.Model
+	spinner spinner.Model
+	modeSel int
+	menuSel int
+	loading bool
 
 	cfgPromptFor string
 
@@ -236,7 +248,7 @@ func (m model) handleConfigPromptKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 }
 
 var menuItems = []struct {
-	label string
+	label  string
 	action func(*model) (tea.Model, tea.Cmd)
 }{
 	{label: "Expand Shortname", action: func(m *model) (tea.Model, tea.Cmd) {
@@ -320,6 +332,12 @@ func (m model) handleExpandResultKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	switch msg.String() {
 	case "enter", "esc", " ":
 		m.state = viewMainMenu
+		return m, nil
+	case "e":
+		m.input.SetValue("")
+		m.input.Placeholder = "Enter output file path"
+		m.input.Focus()
+		m.state = viewExport
 		return m, nil
 	}
 	return m, nil
@@ -442,12 +460,18 @@ func (m model) View() string {
 		b.WriteString("\x1b[2mEnter to save  •  Esc to go back\x1b[0m\n")
 
 	case viewMainMenu:
-		b.WriteString(fmt.Sprintf("ggsnw — Mode: %s    Words: %d\n\n", m.src.Name(), m.wl.Count()))
+		b.WriteString(Banner + "\n")
+		b.WriteString("\x1b[2m         Wordlist Generator by yazdanctx\x1b[0m\n")
+		b.WriteString(fmt.Sprintf("\n  Mode: %s    Words: %d\n\n", m.src.Name(), m.wl.Count()))
 		for i, item := range menuItems {
+			label := item.label
+			if (i == 2 || i == 3) && m.wl.Count() > 0 {
+				label = fmt.Sprintf("%s [%d]", item.label, m.wl.Count())
+			}
 			if m.menuSel == i {
-				b.WriteString(fmt.Sprintf("  > %s\n", item.label))
+				b.WriteString(fmt.Sprintf("  > %s\n", label))
 			} else {
-				b.WriteString(fmt.Sprintf("    %s\n", item.label))
+				b.WriteString(fmt.Sprintf("    %s\n", label))
 			}
 		}
 		if m.statusMsg != "" {
@@ -483,12 +507,16 @@ func (m model) View() string {
 			b.WriteString(fmt.Sprintf("  [ ] %s — not found\n", m.resultShortname))
 		} else {
 			b.WriteString(fmt.Sprintf("  [x] %s — %d words\n\n", m.resultShortname, len(m.resultWords)))
-			for _, w := range m.resultWords {
+			for i, w := range m.resultWords {
+				if i >= 10 {
+					b.WriteString(fmt.Sprintf("  ... and %d more\n", len(m.resultWords)-10))
+					break
+				}
 				b.WriteString("  " + w + "\n")
 			}
 		}
 		b.WriteString(fmt.Sprintf("\nWordlist now has %d words\n", m.wl.Count()))
-		b.WriteString("\n\x1b[2mPress Enter to continue\x1b[0m\n")
+		b.WriteString("\n\x1b[2mEnter to continue  •  'e' to export\x1b[0m\n")
 
 	case viewLoadFile:
 		if m.loading {
@@ -510,6 +538,10 @@ func (m model) View() string {
 		words := m.wl.All()
 		if len(words) > 0 {
 			for i, w := range words {
+				if i >= 20 {
+					b.WriteString(fmt.Sprintf("  ... and %d more\n", len(words)-20))
+					break
+				}
 				b.WriteString(fmt.Sprintf("  %d. %s\n", i+1, w))
 			}
 		} else {
