@@ -1,6 +1,6 @@
 # ggsnw
 
-Recon tool that takes IIS shortnames (e.g. `ADMIN~1`, `WEB~1.CON`) and expands them into a wordlist using either GitHub Code Search (real filenames) or OpenAI (AI-generated guesses).
+Shortname fragment expansion tool. Takes a partial filename (e.g. `auth`, `admin`) and generates a wordlist of full filename candidates by searching GitHub Code Search or asking OpenAI.
 
 ## Install
 
@@ -8,29 +8,25 @@ Recon tool that takes IIS shortnames (e.g. `ADMIN~1`, `WEB~1.CON`) and expands t
 go install github.com/yazdanctx/ggsnw@latest
 ```
 
-## Tokens
-
-### GitHub token (for `--mode github`, default)
-Needed for GitHub Code Search API. Without one, you get 10 req/min; with a token, 30 req/min.
-Get one at https://github.com/settings/tokens (no scopes needed for public repos).
-
-### OpenAI key (for `--mode ai`)
-Needed for AI-powered name guessing using gpt-3.5-turbo.
-Get one at https://platform.openai.com/api-keys
-
-Set either with `--token` / `--key` or let the tool prompt you on first use. Stored at `~/.config/ggsnw/config.json`.
-
 ## Usage
 
 ```
-# GitHub mode (default) — finds real filenames
-ggsnw --token ghp_xxx
-ggsnw ADMIN~1
-ggsnw -f shortnames.txt -o wordlist.txt
-
-# AI mode — generates plausible name guesses
-ggsnw --key sk-xxx --mode ai ADMIN~1
-ggsnw --mode ai -f shortnames.txt --guesses 15
+ggsnw
 ```
 
-GitHub mode is rate-limited to 30 requests/minute; the tool pauses automatically.
+Launches an interactive TUI. Pick a source (GitHub or AI), then:
+
+- **1** — Expand a single shortname
+- **2** — Load shortnames from a file
+- **3** — View current wordlist count
+- **4** — Export wordlist to a file
+- **5** — Clear wordlist
+- **6** — Quit
+
+## Tokens
+
+**GitHub token:** Needed for GitHub Code Search (30 req/min with token, 10 without). Get one at https://github.com/settings/tokens — no scopes needed for public repos.
+
+**OpenAI key:** Needed for AI mode (gpt-3.5-turbo). Get one at https://platform.openai.com/api-keys.
+
+Tokens are stored at `~/.config/ggsnw/config.json` and prompted on first use if missing.
