@@ -18,6 +18,11 @@ var Version = "dev"
 
 var Banner = "ggsnw"
 
+func writeHeader(b *strings.Builder) {
+	b.WriteString(Banner + "\n")
+	b.WriteString("\x1b[2m  by @yazdanctx\x1b[0m\n\n")
+}
+
 type viewState int
 
 const (
@@ -426,7 +431,7 @@ func (m model) View() string {
 
 	switch m.state {
 	case viewModeSelect:
-		b.WriteString(fmt.Sprintf("ggsnw %s — Wordlist Generator\n\n", Version))
+		writeHeader(&b)
 		b.WriteString("Select expansion source:\n\n")
 		if m.modeSel == 0 {
 			b.WriteString("  > GitHub (search code)\n")
@@ -438,6 +443,7 @@ func (m model) View() string {
 		b.WriteString("\n\x1b[2m↑/↓ navigate  •  Enter select  •  Esc/q quit\x1b[0m\n")
 
 	case viewConfigPrompt:
+		writeHeader(&b)
 		if m.cfgPromptFor == "github" {
 			b.WriteString("Configure GitHub Token\n\n")
 			b.WriteString("Get one at: https://github.com/settings/tokens\n")
@@ -450,9 +456,8 @@ func (m model) View() string {
 		b.WriteString("\x1b[2mEnter to save  •  Esc to go back\x1b[0m\n")
 
 	case viewMainMenu:
-		b.WriteString(Banner + "\n")
-		b.WriteString("\x1b[2m  written by yazdanctx\x1b[0m\n")
-		b.WriteString(fmt.Sprintf("\n  mode: %s    words: %d\n\n", m.src.Name(), m.wl.Count()))
+		writeHeader(&b)
+		b.WriteString(fmt.Sprintf("  mode: %s    words: %d\n\n", m.src.Name(), m.wl.Count()))
 		for i, item := range menuItems {
 			label := item.label
 			if (i == 2 || i == 3) && m.wl.Count() > 0 {
@@ -471,6 +476,7 @@ func (m model) View() string {
 		b.WriteString("\n\x1b[2m↑/↓ navigate  •  Enter select  •  Esc/q quit\x1b[0m\n")
 
 	case viewExpand:
+		writeHeader(&b)
 		if m.loading {
 			b.WriteString(m.spinner.View() + " Expanding...\n")
 		} else {
@@ -480,6 +486,7 @@ func (m model) View() string {
 		}
 
 	case viewExpandResult:
+		writeHeader(&b)
 		if m.resultIsFile {
 			b.WriteString("File Load Results\n\n")
 			if len(m.resultFileErrs) > 0 {
@@ -509,6 +516,7 @@ func (m model) View() string {
 		b.WriteString("\n\x1b[2mEnter to continue  •  'e' to export\x1b[0m\n")
 
 	case viewLoadFile:
+		writeHeader(&b)
 		if m.loading {
 			b.WriteString(m.spinner.View() + " Loading shortnames...\n")
 		} else {
@@ -518,11 +526,13 @@ func (m model) View() string {
 		}
 
 	case viewExport:
+		writeHeader(&b)
 		b.WriteString("Export wordlist to file:\n\n")
 		b.WriteString(m.input.View() + "\n\n")
 		b.WriteString("\x1b[2mEnter to export  •  Esc to go back\x1b[0m\n")
 
 	case viewWordlist:
+		writeHeader(&b)
 		b.WriteString("Wordlist\n\n")
 		b.WriteString(fmt.Sprintf("Total words: %d\n\n", m.wl.Count()))
 		words := m.wl.All()
@@ -540,6 +550,7 @@ func (m model) View() string {
 		b.WriteString("\n\x1b[2mEsc to go back\x1b[0m\n")
 
 	case viewClearConfirm:
+		writeHeader(&b)
 		b.WriteString("Clear Wordlist\n\n")
 		b.WriteString(fmt.Sprintf("Wordlist contains %d words.\nAre you sure? (y/N)\n", m.wl.Count()))
 	}
