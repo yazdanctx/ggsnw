@@ -19,8 +19,7 @@ var Version = "dev"
 var Banner = "ggsnw"
 
 func writeHeader(b *strings.Builder) {
-	b.WriteString(Banner + "\n")
-	b.WriteString("\x1b[2m  by @yazdanctx\x1b[0m\n\n")
+	b.WriteString(Banner + "  \x1b[2mby @yazdanctx\x1b[0m\n\n")
 }
 
 type viewState int
